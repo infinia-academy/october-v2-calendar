@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>October 2026 Course Schedule — V2</title>
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --line:#dfe5ee; --text:#172033; --muted:#687386;
+  --math:#f8c9c9; --math-b:#c53a3a;
+  --science:#cfe3ff; --science-b:#2c69b7;
+  --english:#fff0a8; --english-b:#b48600;
+  --ok:#e6f6ea; --warn:#fff4d6; --bad:#fde6e6;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:22px 24px 14px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+h1{margin:0 0 6px;font-size:24px} .sub{color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+button,select{border:1px solid #cfd7e3;background:#fff;border-radius:9px;padding:8px 10px;font:inherit}
+button.active{background:#172033;color:#fff;border-color:#172033}
+label.toggle{display:flex;gap:7px;align-items:center;margin-left:6px}
+main{padding:18px 18px 40px;max-width:1600px;margin:auto}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 12px} .key{display:flex;gap:6px;align-items:center}
+.swatch{width:18px;height:13px;border-radius:4px;border:1px solid}
+.math{background:var(--math);border-color:var(--math-b)} .science{background:var(--science);border-color:var(--science-b)} .english{background:var(--english);border-color:var(--english-b)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 13px} .metric b{display:block;font-size:20px}
+.week{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 14px;overflow:hidden}
+.weektitle{padding:9px 12px;font-weight:700;background:#f1f4f8;border-bottom:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr))}
+.day{min-height:260px;border-right:1px solid var(--line);padding:8px} .day:last-child{border-right:none}
+.dayhead{font-weight:700;margin-bottom:7px} .off{opacity:.42;background:#fafafa}
+.slot{margin:4px 0;padding-top:4px;border-top:1px dashed #e7ebf1} .slot:first-of-type{border-top:0}
+.time{font-size:11px;color:var(--muted);margin-bottom:3px}
+.parallel{display:flex;gap:3px;align-items:stretch} .event{flex:1;min-width:0;border:1px solid;border-radius:6px;padding:4px 5px;font-weight:700;text-align:center;overflow:hidden}
+.event small{display:block;font-weight:500;font-size:10px}
+.notice{padding:10px 12px;border-radius:10px;margin:0 0 12px;border:1px solid}
+.notice.ok{background:var(--ok);border-color:#b8dfc2} .notice.warn{background:var(--warn);border-color:#e7cc7e} .notice.bad{background:var(--bad);border-color:#e4b2b2}
+.hidden{display:none!important}
+@media(max-width:950px){.grid{grid-template-columns:repeat(2,minmax(150px,1fr))} .metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){header{position:static} .grid{grid-template-columns:1fr} .metrics{grid-template-columns:1fr 1fr}}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#172033">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="October V2">
+<link rel="apple-touch-icon" href="icon.svg">
+
+</head>
+<body>
+<header>
+  <h1>October 2026 Course Schedule — V2</h1>
+  <div class="sub">14 periods per course · V1 remains the original 12-period version</div>
+  <div class="toolbar">
+    <button id="overviewBtn" class="active">Overview</button>
+    <button id="teacherBtn">Teacher view</button>
+    <button id="studentBtn">Student view</button>
+    <select id="teacherSelect" class="hidden">
+      <option>Math</option><option>Science</option><option>English</option>
+    </select>
+    <select id="studentSelect" class="hidden">
+      <option>P4 — all subjects</option><option>P5 — M + S + EPF</option><option>P5 — M + S + EPA</option><option>P6 — M + S + EMF</option><option>P6 — M + S + EMA</option><option>M2 — M + S + EMF</option><option>M2 — M + S + EMA</option><option>M3 — M + S + EMF</option><option>M3 — M + S + EMA</option><option>M4 — M + S + EMF</option><option>M4 — M + S + EMA</option>
+    </select>
+    <label id="efcLabel" class="toggle hidden"><input id="efcToggle" type="checkbox"> Show EFC overlay</label>
+  </div>
+</header>
+<main>
+  <div class="legend">
+    <div class="key"><span class="swatch math"></span>Math</div>
+    <div class="key"><span class="swatch science"></span>Science</div>
+    <div class="key"><span class="swatch english"></span>English</div>
+  </div>
+  <div id="metrics" class="metrics"></div>
+  <div id="notice"></div>
+  <div id="calendar"></div>
+</main>
+<script>
+const EVENTS=[{"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "EMA", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "EMF", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MM2", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MM3", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MM4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MP6", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MS2", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MS3", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "MS4", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-01", "day": 1, "dow": "Thu", "code": "SP6", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "MP4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "SP4", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-02", "day": 2, "dow": "Fri", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-03", "day": 3, "dow": "Sat", "code": "EFC", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-03", "day": 3, "dow": "Sat", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-03", "day": 3, "dow": "Sat", "code": "MP4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-03", "day": 3, "dow": "Sat", "code": "MP6", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MM3", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MM4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "MS4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-05", "day": 5, "dow": "Mon", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "EFC", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "EMA", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "EMF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MM2", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MM3", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MM4", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MP4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MP6", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MS2", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "MS4", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "SP4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-06", "day": 6, "dow": "Tue", "code": "SP6", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "EFC", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "MP4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "SP4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-07", "day": 7, "dow": "Wed", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "EFC", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "EMA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MM2", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MM3", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MM4", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MP6", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MS2", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MS3", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "MS4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-08", "day": 8, "dow": "Thu", "code": "SP6", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "MP4", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "SP4", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-09", "day": 9, "dow": "Fri", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-10", "day": 10, "dow": "Sat", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-10", "day": 10, "dow": "Sat", "code": "EP4", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-10", "day": 10, "dow": "Sat", "code": "MP4", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-10", "day": 10, "dow": "Sat", "code": "MP6", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "EPA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "EPF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MM3", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MM4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "MS4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-12", "day": 12, "dow": "Mon", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "EFC", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "EMA", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "EMF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MM3", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MM4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MP4", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MP6", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MS2", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MS3", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "MS4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "SP4", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-13", "day": 13, "dow": "Tue", "code": "SP6", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "EPA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "EPF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "MP4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "MP5", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "SP4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-14", "day": 14, "dow": "Wed", "code": "SP5", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "EMA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MM3", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MM4", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MP6", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "MS4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-15", "day": 15, "dow": "Thu", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "MP4", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "SP4", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-16", "day": 16, "dow": "Fri", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-17", "day": 17, "dow": "Sat", "code": "MP6", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "EMF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "EPA", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MM3", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MM4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MP5", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MS2", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "MS3", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "SP4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "SP5", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-19", "day": 19, "dow": "Mon", "code": "SP6", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "EMA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MM3", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MM4", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MP4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MP6", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "MS4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "SP4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-20", "day": 20, "dow": "Tue", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-21", "day": 21, "dow": "Wed", "code": "EPA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-21", "day": 21, "dow": "Wed", "code": "EPF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-21", "day": 21, "dow": "Wed", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-21", "day": 21, "dow": "Wed", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "EMA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "EMF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "EP4", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MM3", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MM4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MP6", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MS3", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "MS4", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "SP4", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-22", "day": 22, "dow": "Thu", "code": "SP6", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "MP4", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "MS4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "SP4", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-23", "day": 23, "dow": "Fri", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-24", "day": 24, "dow": "Sat", "code": "MP6", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "EMA", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "EMF", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "EPA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "EPF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MM2", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MM3", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MM4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MP6", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MS2", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MS3", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "MS4", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-26", "day": 26, "dow": "Mon", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "EFC", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "EP4", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MM2", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MM3", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MM4", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MP4", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MP6", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MS2", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MS3", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "MS4", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "SP4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-27", "day": 27, "dow": "Tue", "code": "SP6", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "EFC", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "EP4", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "EPA", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "EPF", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "MP4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "MP5", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "SP4", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-28", "day": 28, "dow": "Wed", "code": "SP5", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "EFC", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MM2", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MM3", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MM4", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MP6", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MS2", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MS3", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "MS4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-29", "day": 29, "dow": "Thu", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "EMA", "subject": "English", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "EMF", "subject": "English", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "EPA", "subject": "English", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "EPF", "subject": "English", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MM2", "subject": "Math", "period": 1, "time": "09:00\u201310:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MM3", "subject": "Math", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MM4", "subject": "Math", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MP4", "subject": "Math", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MP5", "subject": "Math", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MS3", "subject": "Science", "period": 4, "time": "14:40\u201316:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "MS4", "subject": "Science", "period": 5, "time": "16:20\u201317:50"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "SP4", "subject": "Science", "period": 3, "time": "13:00\u201314:30"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "SP5", "subject": "Science", "period": 2, "time": "10:40\u201312:10"}, {"date": "2026-10-30", "day": 30, "dow": "Fri", "code": "SP6", "subject": "Science", "period": 1, "time": "09:00\u201310:30"}];
+const CASES={"P4 \u2014 all subjects": ["MP4", "SP4", "EP4"], "P5 \u2014 M + S + EPF": ["MP5", "SP5", "EPF"], "P5 \u2014 M + S + EPA": ["MP5", "SP5", "EPA"], "P6 \u2014 M + S + EMF": ["MP6", "SP6", "EMF"], "P6 \u2014 M + S + EMA": ["MP6", "SP6", "EMA"], "M2 \u2014 M + S + EMF": ["MM2", "MS2", "EMF"], "M2 \u2014 M + S + EMA": ["MM2", "MS2", "EMA"], "M3 \u2014 M + S + EMF": ["MM3", "MS3", "EMF"], "M3 \u2014 M + S + EMA": ["MM3", "MS3", "EMA"], "M4 \u2014 M + S + EMF": ["MM4", "MS4", "EMF"], "M4 \u2014 M + S + EMA": ["MM4", "MS4", "EMA"]};
+const PERIODS={"1": "09:00\u201310:30", "2": "10:40\u201312:10", "3": "13:00\u201314:30", "4": "14:40\u201316:10", "5": "16:20\u201317:50"};
+const SUBJECT={Math:"math",Science:"science",English:"english"};
+let mode="overview";
+
+const byDate={};
+for(const e of EVENTS) (byDate[e.date]??=[]).push(e);
+
+function mondayOf(dateStr){
+  const d=new Date(dateStr+"T00:00:00");
+  const x=(d.getDay()+6)%7; d.setDate(d.getDate()-x); return d;
+}
+function fmt(d){return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+
+function activeCodes(){
+  if(mode==="overview") return null;
+  if(mode==="teacher") {
+    const t=document.getElementById("teacherSelect").value;
+    return new Set(EVENTS.filter(e=>e.subject===t).map(e=>e.code));
+  }
+  const name=document.getElementById("studentSelect").value;
+  const a=[...CASES[name]];
+  if(document.getElementById("efcToggle").checked) a.push("EFC");
+  return new Set(a);
+}
+
+function filteredEvents(){
+  const codes=activeCodes();
+  return codes?EVENTS.filter(e=>codes.has(e.code)):EVENTS;
+}
+
+function validateStudent() {
+  if(mode!=="student") return null;
+  const name=document.getElementById("studentSelect").value;
+  const includeEFC=document.getElementById("efcToggle").checked;
+  const codes=new Set(CASES[name]); if(includeEFC) codes.add("EFC");
+  const ev=EVENTS.filter(e=>codes.has(e.code));
+  const dates=[...new Set(ev.map(e=>e.date))].sort();
+  let clashes=[], noncompact=[], over3=[];
+  const g={};
+  for(const e of ev) (g[e.date]??=[]).push(e);
+  for(const [date,arr] of Object.entries(g)) {
+    if(arr.length>3) over3.push(date);
+    const ps=arr.map(x=>x.period);
+    if(new Set(ps).size<ps.length) clashes.push(date);
+    const u=[...new Set(ps)].sort((a,b)=>a-b);
+    if(u.length>=2) {
+      let compact=true; for(let i=1;i<u.length;i++) if(u[i]!==u[i-1]+1) compact=false;
+      if(!compact) noncompact.push(date);
+    }
+  }
+  const triples=[];
+  for(let i=0;i<dates.length-2;i++) {
+    const a=new Date(dates[i]),b=new Date(dates[i+1]),c=new Date(dates[i+2]);
+    if((b-a)===86400000 && (c-b)===86400000) triples.push([dates[i],dates[i+1],dates[i+2]]);
+  }
+  return {name,includeEFC,dates,clashes,noncompact,over3,triples};
+}
+
+function renderMetrics(ev) {
+  const box=document.getElementById("metrics");
+  if(mode==="overview") {
+    const totals={Math:0,Science:0,English:0}; ev.forEach(e=>totals[e.subject]++);
+    box.innerHTML=`<div class="metric"><span>Math teacher</span><b>${totals.Math}</b><small>October periods</small></div>
+    <div class="metric"><span>Science teacher</span><b>${totals.Science}</b><small>October periods</small></div>
+    <div class="metric"><span>English teacher</span><b>${totals.English}</b><small>October periods</small></div>
+    <div class="metric"><span>Per course</span><b>14</b><small>V2 base volume</small></div>`;
+  } else if(mode==="teacher") {
+    const t=document.getElementById("teacherSelect").value;
+    const weeks={}; ev.forEach(e=>{const m=mondayOf(e.date).toISOString().slice(0,10); weeks[m]=(weeks[m]||0)+1});
+    box.innerHTML=`<div class="metric"><span>${t} teacher</span><b>${ev.length}</b><small>October periods</small></div>
+    <div class="metric"><span>Busiest week</span><b>${Math.max(...Object.values(weeks),0)}</b><small>limit 24</small></div>
+    <div class="metric"><span>Courses</span><b>${new Set(ev.map(e=>e.code)).size}</b><small>14 periods each</small></div>
+    <div class="metric"><span>Saturday rule</span><b>${t==="Science"?"OFF":"Available"}</b><small>${t==="Science"?"hard constraint":"as needed"}</small></div>`;
+  } else {
+    const v=validateStudent();
+    box.innerHTML=`<div class="metric"><span>Attendance days</span><b>${v.dates.length}</b><small>October</small></div>
+    <div class="metric"><span>Displayed periods</span><b>${ev.length}</b><small>${v.includeEFC?"includes EFC":"core pathway"}</small></div>
+    <div class="metric"><span>Same-time clashes</span><b>${v.clashes.length}</b><small>student conflicts</small></div>
+    <div class="metric"><span>3-day runs</span><b>${v.triples.length}</b><small>consecutive attendance</small></div>`;
+  }
+}
+
+function renderNotice() {
+  const n=document.getElementById("notice");
+  if(mode!=="student"){n.innerHTML="";return}
+  const v=validateStudent();
+  const problems=v.clashes.length+v.noncompact.length+v.over3.length+v.triples.length;
+  if(!problems) n.innerHTML=`<div class="notice ok"><b>Student-rule check:</b> This displayed pathway has no same-time clash, no 4-period day, no 3-consecutive-day run, and no gap inside multi-period days.</div>`;
+  else {
+    const bits=[];
+    if(v.clashes.length) bits.push(`${v.clashes.length} same-time clash day(s)`);
+    if(v.noncompact.length) bits.push(`${v.noncompact.length} non-compact multi-period day(s)`);
+    if(v.over3.length) bits.push(`${v.over3.length} day(s) over 3 periods`);
+    if(v.triples.length) bits.push(`${v.triples.length} three-consecutive-day run(s)`);
+    n.innerHTML=`<div class="notice ${v.includeEFC?"warn":"bad"}"><b>Student-rule check:</b> ${bits.join(" · ")}. ${v.includeEFC?"EFC is an optional overlay, so some conflicts are expected.":"This core pathway still needs refinement in the next optimization pass."}</div>`;
+  }
+}
+
+function renderCalendar() {
+  const ev=filteredEvents();
+  renderMetrics(ev); renderNotice();
+  const datesBy={}; ev.forEach(e=>(datesBy[e.date]??=[]).push(e));
+  const weeks=[
+    ["2026-09-28","2026-10-03"],
+    ["2026-10-05","2026-10-10"],
+    ["2026-10-12","2026-10-17"],
+    ["2026-10-19","2026-10-24"],
+    ["2026-10-26","2026-10-31"]
+  ];
+  let html="";
+  for(const [start,end] of weeks) {
+    const sd=new Date(start+"T00:00:00");
+    html+=`<section class="week"><div class="weektitle">Week starting Monday ${fmt(sd)}</div><div class="grid">`;
+    for(let i=0;i<6;i++) {
+      const d=new Date(sd); d.setDate(sd.getDate()+i);
+      const iso=d.toISOString().slice(0,10);
+      const inOct=iso.startsWith("2026-10") && Number(iso.slice(-2))<=30;
+      html+=`<div class="day ${inOct?"":"off"}"><div class="dayhead">${d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</div>`;
+      if(!inOct) html+=`<div class="sub">Outside course window</div>`;
+      else {
+        for(let t=1;t<=5;t++) {
+          const arr=(datesBy[iso]||[]).filter(e=>e.period===t).sort((a,b)=>a.subject.localeCompare(b.subject));
+          html+=`<div class="slot"><div class="time">T${t} · ${PERIODS[t]}</div><div class="parallel">`;
+          if(arr.length) for(const e of arr) html+=`<div class="event ${SUBJECT[e.subject]}" title="${esc(e.subject)}">${esc(e.code)}<small>${esc(e.subject)}</small></div>`;
+          else html+=`<span style="color:#c1c7d0">—</span>`;
+          html+=`</div></div>`;
+        }
+      }
+      html+=`</div>`;
+    }
+    html+=`</div></section>`;
+  }
+  document.getElementById("calendar").innerHTML=html;
+}
+
+function setMode(m){
+  mode=m;
+  for(const id of ["overviewBtn","teacherBtn","studentBtn"]) document.getElementById(id).classList.remove("active");
+  document.getElementById(m+"Btn").classList.add("active");
+  document.getElementById("teacherSelect").classList.toggle("hidden",m!=="teacher");
+  document.getElementById("studentSelect").classList.toggle("hidden",m!=="student");
+  document.getElementById("efcLabel").classList.toggle("hidden",m!=="student");
+  renderCalendar();
+}
+document.getElementById("overviewBtn").onclick=()=>setMode("overview");
+document.getElementById("teacherBtn").onclick=()=>setMode("teacher");
+document.getElementById("studentBtn").onclick=()=>setMode("student");
+document.getElementById("teacherSelect").onchange=renderCalendar;
+document.getElementById("studentSelect").onchange=renderCalendar;
+document.getElementById("efcToggle").onchange=renderCalendar;
+renderCalendar();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

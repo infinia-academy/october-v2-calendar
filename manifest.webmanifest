@@ -1,0 +1,16 @@
+{
+  "name": "October 2026 Course Schedule V2",
+  "short_name": "October V2",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#172033",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
