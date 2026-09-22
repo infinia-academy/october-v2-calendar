@@ -1,16 +1,1 @@
-{
-  "name": "October 2026 V2 No T5 Math English",
-  "short_name": "October V2",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#172033",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
-}
+{"name":"Infinia Academy October 2026 V3","short_name":"Oct V3","start_url":"./","display":"standalone","background_color":"#f6f7fb","theme_color":"#101828","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml"}]}
